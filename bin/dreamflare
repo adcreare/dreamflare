@@ -4,13 +4,7 @@
 # Description: dreamflare - sync dreamhost DNS to cloudflare
 #
 #
-#		NOTES: Entry point is at bottom of code as per ruby requirements
-#
-#
-#
-# Author: David  (david.taberner@reckon)
-#
-#
+# Author: David https://commscentral.net/
 #
 ####################################################################################
 
@@ -21,20 +15,14 @@ require_relative '../config.rb'
 $LOAD_PATH << File.expand_path(File.dirname(__FILE__) + '/../lib')
 require 'dreamflare.rb'
 
-#default module
+#setup our namespace
 include Dreamflare
 
-
-#settings
-SearchZone = 'commscentral.net'
-
-
-
-
+#query dreamhost
 dreamHost = DHAPIQuery.new(DHKEY)
 dhResults = dreamHost.query('dns-list_records')
 
-
+#query cloudflare
 cloudFlare = CFAPIQuery.new(CFKEY,CFEMAIL)
 cfResults = cloudFlare.query(CFZoneID,'dns_records');
 
@@ -51,7 +39,6 @@ cfResults = cloudFlare.query(CFZoneID,'dns_records');
 #dhResults.each {|value| puts value}
 
 
-
 matchingDHZones = []
 
 if dhResults['result'] == 'success'
@@ -63,20 +50,20 @@ if dhResults['result'] == 'success'
     end
 end
 
-#puts(matchingDHZones)
+puts(matchingDHZones)
+
+
+puts('--------------NOW CF ---------------')
+
+
+matchingCFZones = []
+if cfResults['success'] == true
+  cfResults['result'].each do |dnsRecord|
+      h = {'record' => dnsRecord['name'],'value' => dnsRecord['content'],'type' =>dnsRecord['type']}
+      matchingCFZones.push(h)
+  end
+end
+puts(matchingCFZones)
 
 ## TODO
-# get all records from CF as well
 # check if each record in dreamhost exists in CF and if they match
-
-puts(cfResults)
-
-# matchingCFZones = []
-# if cfResults['result'] == 'success'
-#     cfResults['data'].each do |dnsRecord|
-#         if(dnsRecord['zone'] == SearchZone)
-#              h = {'record' => dnsRecord['record'],'value' => dnsRecord['value'],'type' => dnsRecord['type']}
-#              matchingDHZones.push(h)
-#         end
-#     end
-# end
