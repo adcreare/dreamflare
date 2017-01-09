@@ -28,16 +28,6 @@ cfResults = cloudFlare.query(CFZoneID,'dns_records');
 
 
 
-#loop options
-
-# for result in dhResults
-#
-#     puts result
-# end
-
-
-#dhResults.each {|value| puts value}
-
 
 matchingDHZones = []
 
@@ -50,7 +40,7 @@ if dhResults['result'] == 'success'
     end
 end
 
-puts(matchingDHZones)
+#puts(matchingDHZones)
 
 
 puts('--------------NOW CF ---------------')
@@ -60,10 +50,83 @@ matchingCFZones = []
 if cfResults['success'] == true
   cfResults['result'].each do |dnsRecord|
       h = {'record' => dnsRecord['name'],'value' => dnsRecord['content'],'type' =>dnsRecord['type']}
+
+      if(!dnsRecord['priority'].nil?)
+        puts('priority is SET!')
+
+        h['priority'] = dnsRecord['priority']
+      end
+      # h['priority'] =
+
       matchingCFZones.push(h)
   end
 end
-puts(matchingCFZones)
+#puts(matchingCFZones)
+
+puts('--------------NOW search for DH records in CF ---------------')
+
+#loop for each source record
+matchingDHZones.each do |dhRecord|
+
+    #find any CF records that match on DNS name and record type
+    searchResult = matchingCFZones.select{ |x| x["record"] == dhRecord['record'] and x['type'] == dhRecord['type'] }
+    resultLength = searchResult.length
+
+    if(resultLength == 0)
+      #puts('create record')
+
+      #call create record
+
+    else #found match now what?
+      puts(searchResult)
+
+      #check match multiple records could have been returned
+      if(resultLength > 1)
+
+        puts('multiple records -- hard')
+        # searchResult.each do |result|
+        #
+        #   if(dhRecord['value'] == result['value'])
+        #     puts 'matched'
+        #   else
+        #     puts 'missed match'
+        #   end
+        #
+        # end
+
+        #search all dreamhost results to get their multiple cords
+        searchDHResults = matchingDHZones.select{ |x| x["record"] == searchResult[0]["record"] and x["type"] == searchResult[0]["type"] }
+
+        puts('-------start compare-------------')
+        puts(searchDHResults)
+        puts(searchResult)
+        puts('--------end compare------------')
+
+      else
+        puts('single record - easy')
+        #puts (searchResult)
+        #puts(searchResult[0]['value'])
+
+        if(searchResult[0]['value'] != dhRecord['value'])
+          puts "Records do not much - update required"
+
+        else
+          puts "records match - no action needed"
+
+        end
+
+
+      end
+
+
+    end
+
+
+
+
+    #puts("---------------")
+
+end
 
 ## TODO
 # check if each record in dreamhost exists in CF and if they match
