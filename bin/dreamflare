@@ -34,8 +34,23 @@ matchingDHZones = []
 if dhResults['result'] == 'success'
     dhResults['data'].each do |dnsRecord|
         if(dnsRecord['zone'] == SearchZone)
-             h = {'record' => dnsRecord['record'],'value' => dnsRecord['value'],'type' => dnsRecord['type']}
-             matchingDHZones.push(h)
+            if(dnsRecord['value'].count(" ") > 0)
+                resultOfSplit = dnsRecord['value'].split
+                if(resultOfSplit.length > 2 || dnsRecord['type'] == 'TXT')
+                    puts("error we can't split a record from dreamhost. Its safest we skip this record bar risk a bad cloudflare update")
+                    break
+                else
+                    priority = Integer(resultOfSplit[0]) rescue throw('unable to cast to interger the front value of the dns record from dreamhost')
+                    h = {'record' => dnsRecord['record'],'value' => resultOfSplit[1].chomp('.'),'type' => dnsRecord['type'], 'priority' => Integer(resultOfSplit[0]) }
+                end
+
+
+            else
+                h = {'record' => dnsRecord['record'],'value' => dnsRecord['value'].chomp('.'),'type' => dnsRecord['type']}
+            end
+
+
+            matchingDHZones.push(h)
         end
     end
 end
@@ -98,8 +113,31 @@ matchingDHZones.each do |dhRecord|
         searchDHResults = matchingDHZones.select{ |x| x["record"] == searchResult[0]["record"] and x["type"] == searchResult[0]["type"] }
 
         puts('-------start compare-------------')
+
+
+        searchDHResults.each do |dhRecordItem|
+
+            foundMatch = false
+            searchResult.each do |cfRecordItem|
+                if(dhRecordItem == cfRecordItem)
+                    foundMatch = true
+                end
+            end
+
+            #if we can't find a match better create!
+            if(!foundMatch)
+                puts("GO CREATE RECORD")
+            else
+                puts("no need to create duplicate record - already matches")
+            end
+
+
+        end
+
         puts(searchDHResults)
         puts(searchResult)
+
+
         puts('--------end compare------------')
 
       else
