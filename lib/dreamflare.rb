@@ -8,4 +8,4 @@ require 'securerandom'
 
 #lib file loads
 require 'dreamflare/DH_api_query.rb'
-require 'dreamflare/CF_api_query.rb'
+require 'dreamflare/CF_api_calls.rb'

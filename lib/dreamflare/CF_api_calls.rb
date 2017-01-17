@@ -28,7 +28,6 @@ module Dreamflare
             req['X-Auth-Email'] = @@APIEmail
 
             res = https.request(req)
-            puts
 
 
             #data = res
