@@ -89,7 +89,11 @@ matchingDHZones.each do |dhRecord|
 
     if(resultLength == 0)
       #puts('create record')
+      cloudFlare.update_record(dhRecord['record'],dhRecord['type'],dhRecord['value'])
+      puts dhRecord
+      throw "EXIT"
 
+      #{'type' => type,'name' => name,'content' => value}
       #call create record
 
     else #found match now what?
