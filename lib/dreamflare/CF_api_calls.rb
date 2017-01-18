@@ -22,14 +22,15 @@ module Dreamflare
             https.use_ssl = true
 
             req = Net::HTTP::Post.new(uri.path)
-            req.add_field('Content-Type', 'application/json')
+            req['Content-Type'] = 'application/json'
             req['X-Auth-Key'] = @@APIKey
             req['X-Auth-Email'] = @@APIEmail
-            req["body"] = {'type' => type,'name' => name,'content' => value}.to_json
+            req.body = {"type" => type,"name" => name,"content" => value}.to_json
 
-            puts req["body"]
+            #puts req["body"]
 
-
+            puts('--------------------------------------------------------')
+            puts('--------------------------------------------------------')
 
             res = https.request(req)
 
@@ -37,9 +38,9 @@ module Dreamflare
 
             throw "DONE"
 
-            # curl -X POST "https://api.cloudflare.com/client/v4/zones/023e105f4ecef8ad9ca31a8372d0c353/dns_records" \
-            #      -H "X-Auth-Email: user@example.com" \
-            #      -H "X-Auth-Key: c2547eb745079dac9320b638f5e225cf483cc5cfdda41" \
+            # curl -X POST "https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records" \
+            #      -H "X-Auth-Email: david@commscentral.net" \
+            #      -H "X-Auth-Key: ab6b55cbc084891a75f90d8f1a6a2afa04a3b" \
             #      -H "Content-Type: application/json" \
             #      --data '{"type":"A","name":"example.com","content":"127.0.0.1","ttl":120,"proxied":false}'
 
