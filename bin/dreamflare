@@ -27,35 +27,48 @@ cloudFlare = CFAPIQuery.new(CFKEY,CFEMAIL)
 cfResults = cloudFlare.query(CFZoneID,'dns_records');
 
 
-
+#puts dhResults
 
 matchingDHZones = []
 
 if dhResults['result'] == 'success'
     dhResults['data'].each do |dnsRecord|
+
         if(dnsRecord['zone'] == SearchZone)
+          
             if(dnsRecord['value'].count(" ") > 0)
                 resultOfSplit = dnsRecord['value'].split
-                if(resultOfSplit.length > 2 || dnsRecord['type'] == 'TXT')
-                    puts("error we can't split a record from dreamhost. Its safest we skip this record bar risk a bad cloudflare update")
-                    break
-                else
-                    priority = Integer(resultOfSplit[0]) rescue throw('unable to cast to interger the front value of the dns record from dreamhost')
-                    h = {'record' => dnsRecord['record'],'value' => resultOfSplit[1].chomp('.'),'type' => dnsRecord['type'], 'priority' => Integer(resultOfSplit[0]) }
-                end
+                if(resultOfSplit.length > 2)
+                    #puts("error we can't split a record from dreamhost. Its safest we skip this record bar risk a bad cloudflare update")
 
+                    h = {'record' => dnsRecord['record'],'value' => dnsRecord['value'].chomp('.'),'type' => dnsRecord['type']}
+
+
+                else
+                    begin
+                      priority = Integer(resultOfSplit[0])
+                      h = {'record' => dnsRecord['record'],'value' => resultOfSplit[1].chomp('.'),'type' => dnsRecord['type'], 'priority' => Integer(resultOfSplit[0]) }
+                    rescue
+                      puts ('unable to cast to interger the front value of the dns record from dreamhost: '+dnsRecord['value'])
+                      #break
+                    end
+
+                end
 
             else
                 h = {'record' => dnsRecord['record'],'value' => dnsRecord['value'].chomp('.'),'type' => dnsRecord['type']}
             end
 
+            unless(h.nil?)
+              matchingDHZones.push(h)
+            end
 
-            matchingDHZones.push(h)
+
         end
     end
 end
 
-#puts(matchingDHZones)
+
 
 
 puts('--------------NOW CF ---------------')
@@ -67,7 +80,7 @@ if cfResults['success'] == true
       h = {'record' => dnsRecord['name'],'value' => dnsRecord['content'],'type' =>dnsRecord['type']}
 
       if(!dnsRecord['priority'].nil?)
-        puts('priority is SET!')
+        #puts('priority is SET!')
 
         h['priority'] = dnsRecord['priority']
       end
@@ -89,15 +102,17 @@ matchingDHZones.each do |dhRecord|
 
     if(resultLength == 0)
       #puts('create record')
-      cloudFlare.update_record(dhRecord['record'],dhRecord['type'],dhRecord['value'])
-      puts dhRecord
-      throw "EXIT"
+      if(defined?(dhRecord['priority']))
+          cloudFlare.update_record(dhRecord['record'],dhRecord['type'],dhRecord['value'],dhRecord['priority'])
+      else
+          cloudFlare.update_record(dhRecord['record'],dhRecord['type'],dhRecord['value'])
+      end
 
       #{'type' => type,'name' => name,'content' => value}
       #call create record
 
     else #found match now what?
-      puts(searchResult)
+      #puts(searchResult)
 
       #check match multiple records could have been returned
       if(resultLength > 1)
@@ -112,11 +127,11 @@ matchingDHZones.each do |dhRecord|
         #   end
         #
         # end
+        # search all dreamhost results to get their multiple cords
 
-        #search all dreamhost results to get their multiple cords
-        searchDHResults = matchingDHZones.select{ |x| x["record"] == searchResult[0]["record"] and x["type"] == searchResult[0]["type"] }
+        searchDHResults = matchingDHZones.select{ |x| x['record'] == searchResult[0]["record"] and x["type"] == searchResult[0]["type"] }
 
-        puts('-------start compare-------------')
+        #puts('-------start compare-------------')
 
 
         searchDHResults.each do |dhRecordItem|
@@ -142,10 +157,10 @@ matchingDHZones.each do |dhRecord|
         puts(searchResult)
 
 
-        puts('--------end compare------------')
+        #puts('--------end compare------------')
 
       else
-        puts('single record - easy')
+        #puts('single record - easy')
         #puts (searchResult)
         #puts(searchResult[0]['value'])
 
