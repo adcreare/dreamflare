@@ -13,10 +13,10 @@ module Dreamflare
             SecureRandom.uuid
         end
 
-        def update_record(name,type,value)
+        def update_record(name,type,value, priority=nil)
 
             uri  = URI("https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records")
-            puts uri
+            #puts uri
 
             https = Net::HTTP.new(uri.host,uri.port)
             https.use_ssl = true
@@ -25,18 +25,27 @@ module Dreamflare
             req['Content-Type'] = 'application/json'
             req['X-Auth-Key'] = @@APIKey
             req['X-Auth-Email'] = @@APIEmail
-            req.body = {"type" => type,"name" => name,"content" => value}.to_json
 
-            #puts req["body"]
+            if(priority)
+                req.body = {"type" => type,"name" => name,"content" => value, 'priority' => priority}.to_json
+            else
+                req.body = {"type" => type,"name" => name,"content" => value}.to_json
+            end
 
-            puts('--------------------------------------------------------')
-            puts('--------------------------------------------------------')
 
             res = https.request(req)
+            responseObject = JSON.parse(res.body)
 
-            puts(JSON.parse(res.body))
 
-            throw "DONE"
+            if(responseObject["success"])
+                puts("successfully created record   -   "+name+"    "+type+"    "+value)
+            else
+                puts("------------------------")
+                puts("failed to create record  -   "+name+"    "+type+"    "+value)
+                puts(responseObject)
+                puts("------------------------")
+            end
+
 
             # curl -X POST "https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records" \
             #      -H "X-Auth-Email: david@commscentral.net" \
