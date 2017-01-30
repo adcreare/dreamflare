@@ -20,7 +20,7 @@ module Dreamflare
             connection.use_ssl = true
             data = connection.get(uri.request_uri)
 
-            responseObject = processResponse(JSON.parse(data.body))
+            responseObject = process_response(JSON.parse(data.body))
 
             return responseObject
 
@@ -29,7 +29,7 @@ module Dreamflare
 
         private
 
-        def processResponse(dhResults)
+        def process_response(dhResults)
 
           matchingDHZones = []
 
