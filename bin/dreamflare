@@ -24,37 +24,9 @@ matchingDHZones = dreamHost.query('dns-list_records')
 
 #query cloudflare
 cloudFlare = CFAPIQuery.new(CFKEY,CFEMAIL)
-cfResults = cloudFlare.query(CFZoneID,'dns_records');
+matchingCFZones = cloudFlare.query(CFZoneID,'dns_records');
 
 
-#puts dhResults
-
-
-
-#
-
-
-
-
-puts('--------------NOW CF ---------------')
-
-
-matchingCFZones = []
-if cfResults['success'] == true
-  cfResults['result'].each do |dnsRecord|
-      h = {'record' => dnsRecord['name'],'value' => dnsRecord['content'],'type' =>dnsRecord['type']}
-
-      if(!dnsRecord['priority'].nil?)
-        #puts('priority is SET!')
-
-        h['priority'] = dnsRecord['priority']
-      end
-      # h['priority'] =
-
-      matchingCFZones.push(h)
-  end
-end
-#puts(matchingCFZones)
 
 puts('--------------NOW search for DH records in CF ---------------')
 

@@ -71,13 +71,37 @@ module Dreamflare
             res = https.request(req)
 
 
-            #data = res
+            responseObject = process_response(JSON.parse(res.body))
 
-            return JSON.parse(res.body)
+            return responseObject
 
         end
 
-    end
+        private
+
+        def process_response(cfResults)
+
+          matchingCFZones = []
+
+          if cfResults['success'] == true
+            cfResults['result'].each do |dnsRecord|
+                h = {'record' => dnsRecord['name'],'value' => dnsRecord['content'],'type' =>dnsRecord['type']}
+
+                if(!dnsRecord['priority'].nil?)
+                  #puts('priority is SET!')
+
+                  h['priority'] = dnsRecord['priority']
+                end
+                # h['priority'] =
+
+                matchingCFZones.push(h)
+            end
+          end
+
+          return matchingCFZones
+        end
+
+    end #end CFAPIQuery class
 
     ##################
     #
