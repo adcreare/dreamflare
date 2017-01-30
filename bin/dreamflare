@@ -20,7 +20,7 @@ include Dreamflare
 
 #query dreamhost
 dreamHost = DHAPIQuery.new(DHKEY)
-dhResults = dreamHost.query('dns-list_records')
+matchingDHZones = dreamHost.query('dns-list_records')
 
 #query cloudflare
 cloudFlare = CFAPIQuery.new(CFKEY,CFEMAIL)
@@ -29,44 +29,9 @@ cfResults = cloudFlare.query(CFZoneID,'dns_records');
 
 #puts dhResults
 
-matchingDHZones = []
-
-if dhResults['result'] == 'success'
-    dhResults['data'].each do |dnsRecord|
-
-        if(dnsRecord['zone'] == SearchZone)
-          
-            if(dnsRecord['value'].count(" ") > 0)
-                resultOfSplit = dnsRecord['value'].split
-                if(resultOfSplit.length > 2)
-                    #puts("error we can't split a record from dreamhost. Its safest we skip this record bar risk a bad cloudflare update")
-
-                    h = {'record' => dnsRecord['record'],'value' => dnsRecord['value'].chomp('.'),'type' => dnsRecord['type']}
 
 
-                else
-                    begin
-                      priority = Integer(resultOfSplit[0])
-                      h = {'record' => dnsRecord['record'],'value' => resultOfSplit[1].chomp('.'),'type' => dnsRecord['type'], 'priority' => Integer(resultOfSplit[0]) }
-                    rescue
-                      puts ('unable to cast to interger the front value of the dns record from dreamhost: '+dnsRecord['value'])
-                      #break
-                    end
-
-                end
-
-            else
-                h = {'record' => dnsRecord['record'],'value' => dnsRecord['value'].chomp('.'),'type' => dnsRecord['type']}
-            end
-
-            unless(h.nil?)
-              matchingDHZones.push(h)
-            end
-
-
-        end
-    end
-end
+#
 
 
 
