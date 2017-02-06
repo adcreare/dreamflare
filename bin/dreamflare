@@ -15,117 +15,79 @@ require_relative '../config.rb'
 $LOAD_PATH << File.expand_path(File.dirname(__FILE__) + '/../lib')
 require 'dreamflare.rb'
 
-#setup our namespace
+# setup our namespace
 include Dreamflare
 
-#query dreamhost
+# query dreamhost
 dreamHost = DHAPIQuery.new(DHKEY)
+puts('--------------Querying Dreamhost API ---------------')
 matchingDHZones = dreamHost.query('dns-list_records')
 
-#query cloudflare
-cloudFlare = CFAPIQuery.new(CFKEY,CFEMAIL)
-matchingCFZones = cloudFlare.query(CFZoneID,'dns_records');
+# query cloudflare
+cloudFlare = CFAPIQuery.new(CFKEY, CFEMAIL)
+puts('--------------Querying CloudFlare API ---------------')
+matchingCFZones = cloudFlare.query(CFZoneID, 'dns_records')
 
+puts '---'
+puts 'Successfully obtained dns records in each system'
+puts('Searching through dreamhost records to ensure they exist and match on cloudflare')
+puts '---'
 
-
-puts('--------------NOW search for DH records in CF ---------------')
-
-#loop for each source record
+# loop for each source record
 matchingDHZones.each do |dhRecord|
-
-    #find any CF records that match on DNS name and record type
-    searchResult = matchingCFZones.select{ |x| x["record"] == dhRecord['record'] and x['type'] == dhRecord['type'] }
+    # find any CF records that match on DNS name and record type
+    searchResult = matchingCFZones.select { |x| (x['record'] == dhRecord['record']) && (x['type'] == dhRecord['type']) }
     resultLength = searchResult.length
 
-    if(resultLength == 0)
+    if resultLength == 0
 
-      puts "create record: "
-      puts dhRecord
-      puts '----------------'
-      puts matchingCFZones
-      exit
+        puts 'record does not exist - creating new record in CloudFlare'
 
-      if(defined?(dhRecord['priority']))
-          cloudFlare.update_record(dhRecord['record'],dhRecord['type'],dhRecord['value'],dhRecord['priority'])
-      else
-          cloudFlare.update_record(dhRecord['record'],dhRecord['type'],dhRecord['value'])
-      end
-
-      #{'type' => type,'name' => name,'content' => value}
-      #call create record
-
-    else #found match now what?
-      #puts(searchResult)
-
-      #check match multiple records could have been returned
-      if(resultLength > 1)
-
-        puts('multiple records -- hard')
-        # searchResult.each do |result|
-        #
-        #   if(dhRecord['value'] == result['value'])
-        #     puts 'matched'
-        #   else
-        #     puts 'missed match'
-        #   end
-        #
-        # end
-        # search all dreamhost results to get their multiple cords
-
-        searchDHResults = matchingDHZones.select{ |x| x['record'] == searchResult[0]["record"] and x["type"] == searchResult[0]["type"] }
-
-        #puts('-------start compare-------------')
-
-
-        searchDHResults.each do |dhRecordItem|
-
-            foundMatch = false
-            searchResult.each do |cfRecordItem|
-                if(dhRecordItem == cfRecordItem)
-                    foundMatch = true
-                end
-            end
-
-            #if we can't find a match better create!
-            if(!foundMatch)
-                puts("GO CREATE RECORD")
-            else
-                puts("no need to create duplicate record - already matches")
-            end
-
-
-        end
-
-        #puts(searchDHResults)
-        #puts(searchResult)
-
-
-        #puts('--------end compare------------')
-
-      else
-        #puts('single record - easy')
-        #puts (searchResult)
-        #puts(searchResult[0]['value'])
-
-        if(searchResult[0]['value'] != dhRecord['value'])
-          puts "Records do not much - update required "+searchResult[0]['record']
-
+        if defined?(dhRecord['priority'])
+            cloudFlare.update_record(dhRecord['record'], dhRecord['type'], dhRecord['value'], dhRecord['priority'])
         else
-          puts "records match - no action needed: "+searchResult[0]['record']
-
+            cloudFlare.update_record(dhRecord['record'], dhRecord['type'], dhRecord['value'])
         end
 
+        puts 'created: ' + dhRecord['record'] + ' => ' + dhRecord['value']
 
-      end
+    else # found match now what?
+        # puts(searchResult)
 
+        # check match multiple records could have been returned for example MX records
+        if resultLength > 1
 
-    end
+            searchDHResults = matchingDHZones.select { |x| (x['record'] == searchResult[0]['record']) && (x['type'] == searchResult[0]['type']) }
 
+            searchDHResults.each do |dhRecordItem|
+                foundMatch = false
+                searchResult.each do |cfRecordItem|
+                    foundMatch = true if dhRecordItem == cfRecordItem
+                end
 
+                # if we can't find a match better create!
+                if !foundMatch
+                    puts('dual records - GO CREATE RECORD - Multiple records exist')
+                else
+                    # puts("Multi record: no need to create duplicate record - already matches")
+                    puts 'records match - multi value dns record - no action needed: ' + dhRecord['record']
+                end
+            end # end dual record handleing
 
+        else # must be a single record
 
-    #puts("---------------")
+            # check if the values match on the record
+            if searchResult[0]['value'] != dhRecord['value']
+                puts 'single records do not much - update required ' + searchResult[0]['record']
 
+            else
+                puts 'records match - single value dns record - no action needed: ' + searchResult[0]['record']
+
+            end
+
+      end # en single record
+
+  end # end record exists checks
 end
 
 ## TODO

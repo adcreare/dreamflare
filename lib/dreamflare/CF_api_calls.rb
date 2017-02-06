@@ -50,28 +50,19 @@ module Dreamflare
         end
 
         def query(zone, command, _params = '')
-
-
-
-            make_http_request(zone,command, pageValue = 0)
-
-
+            make_http_request(zone, command, pageValue = 0)
         end
 
         private
 
-
-        #something to do the query
+        # something to do the query
         # now I need something to do the paging
-        def make_http_request(zone,command,pageValue=0)
-
-            page=''
-            if(pageValue > 0)
-                page='&page='+String(pageValue)
-            end
+        def make_http_request(zone, command, pageValue = 0)
+            page = ''
+            page = '&page=' + String(pageValue) if pageValue > 0
 
             uri = URI("https://api.cloudflare.com/client/v4/zones/#{zone}/#{command}#{page}")
-            puts uri
+            puts 'Calling cloudflare api: ' + String(uri)
 
             https = Net::HTTP.new(uri.host, uri.port)
             https.use_ssl = true
@@ -90,28 +81,26 @@ module Dreamflare
             intPage = reponseFromQuery['result_info']['page']
             intTotalPages = reponseFromQuery['result_info']['total_pages']
 
-            #process the response into the format we want
+            # process the response into the format we want
             reponseFromQuery = process_response(reponseFromQuery)
 
-            if(intPage < intTotalPages) #if we have more pages to go make a recursive call
+            if intPage < intTotalPages # if we have more pages to go make a recursive call
 
                 # add the reponse obtained to the result of the next call that contains the next page (bump the page number too)
-                return(reponseFromQuery + make_http_request(zone,command,(pageValue+1)))
+                return(reponseFromQuery + make_http_request(zone, command, (pageValue + 1)))
 
             else
                 return reponseFromQuery # must be the last page, just return the reponse
             end
-
         end
 
         def process_response(cfResults)
-            #puts cfResults
+            # puts cfResults
             matchingCFZones = []
 
             if cfResults['success'] == true
 
                 cfResults['result'].each do |dnsRecord|
-
                     h = { 'record' => dnsRecord['name'], 'value' => dnsRecord['content'], 'type' => dnsRecord['type'] }
 
                     unless dnsRecord['priority'].nil?
