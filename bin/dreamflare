@@ -38,7 +38,13 @@ matchingDHZones.each do |dhRecord|
     resultLength = searchResult.length
 
     if(resultLength == 0)
-      #puts('create record')
+
+      puts "create record: "
+      puts dhRecord
+      puts '----------------'
+      puts matchingCFZones
+      exit
+
       if(defined?(dhRecord['priority']))
           cloudFlare.update_record(dhRecord['record'],dhRecord['type'],dhRecord['value'],dhRecord['priority'])
       else
@@ -90,8 +96,8 @@ matchingDHZones.each do |dhRecord|
 
         end
 
-        puts(searchDHResults)
-        puts(searchResult)
+        #puts(searchDHResults)
+        #puts(searchResult)
 
 
         #puts('--------end compare------------')
@@ -102,10 +108,10 @@ matchingDHZones.each do |dhRecord|
         #puts(searchResult[0]['value'])
 
         if(searchResult[0]['value'] != dhRecord['value'])
-          puts "Records do not much - update required"
+          puts "Records do not much - update required "+searchResult[0]['record']
 
         else
-          puts "records match - no action needed"
+          puts "records match - no action needed: "+searchResult[0]['record']
 
         end
 
