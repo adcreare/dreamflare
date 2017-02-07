@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
-####################################################################################
+###############################################################################
 #
 # Description: dreamflare - sync dreamhost DNS to cloudflare
 #
 #
 # Author: David https://commscentral.net/
 #
-####################################################################################
+###############################################################################
 
 # Load configuration (use relative to prevent loading in other places)
 require_relative '../config.rb'
@@ -19,76 +19,23 @@ require 'dreamflare.rb'
 include Dreamflare
 
 # query dreamhost
-dreamHost = DHAPIQuery.new(DHKEY)
+dream_host = DHAPIQuery.new(DHKEY)
 puts('--------------Querying Dreamhost API ---------------')
-matchingDHZones = dreamHost.query('dns-list_records')
+matching_dh_zones = dream_host.query('dns-list_records')
 
 # query cloudflare
-cloudFlare = CFAPIQuery.new(CFKEY, CFEMAIL)
+cloud_flare = CFAPIQuery.new(CFKEY, CFEMAIL)
 puts('--------------Querying CloudFlare API ---------------')
-matchingCFZones = cloudFlare.query(CFZoneID, 'dns_records')
+matching_cf_zones = cloud_flare.query(CFZoneID, 'dns_records')
 
 puts '---'
 puts 'Successfully obtained dns records in each system'
-puts('Searching through dreamhost records to ensure they exist and match on cloudflare')
+puts 'Searching through dreamhost records to ensure they exist and match on cloudflare'
 puts '---'
 
-# loop for each source record
-matchingDHZones.each do |dhRecord|
-    # find any CF records that match on DNS name and record type
-    searchResult = matchingCFZones.select { |x| (x['record'] == dhRecord['record']) && (x['type'] == dhRecord['type']) }
-    resultLength = searchResult.length
-
-    if resultLength == 0
-
-        puts 'record does not exist - creating new record in CloudFlare'
-
-        if defined?(dhRecord['priority'])
-            cloudFlare.update_record(dhRecord['record'], dhRecord['type'], dhRecord['value'], dhRecord['priority'])
-        else
-            cloudFlare.update_record(dhRecord['record'], dhRecord['type'], dhRecord['value'])
-        end
-
-        puts 'created: ' + dhRecord['record'] + ' => ' + dhRecord['value']
-
-    else # found match now what?
-        # puts(searchResult)
-
-        # check match multiple records could have been returned for example MX records
-        if resultLength > 1
-
-            searchDHResults = matchingDHZones.select { |x| (x['record'] == searchResult[0]['record']) && (x['type'] == searchResult[0]['type']) }
-
-            searchDHResults.each do |dhRecordItem|
-                foundMatch = false
-                searchResult.each do |cfRecordItem|
-                    foundMatch = true if dhRecordItem == cfRecordItem
-                end
-
-                # if we can't find a match better create!
-                if !foundMatch
-                    puts('dual records - GO CREATE RECORD - Multiple records exist')
-                else
-                    # puts("Multi record: no need to create duplicate record - already matches")
-                    puts 'records match - multi value dns record - no action needed: ' + dhRecord['record']
-                end
-            end # end dual record handleing
-
-        else # must be a single record
-
-            # check if the values match on the record
-            if searchResult[0]['value'] != dhRecord['value']
-                puts 'single records do not much - update required ' + searchResult[0]['record']
-
-            else
-                puts 'records match - single value dns record - no action needed: ' + searchResult[0]['record']
-
-            end
-
-      end # en single record
-
-  end # end record exists checks
-end
+# create the compare class assignments
+compare_zones = CompareZones.new(cloudFlare, matching_dh_zones, matching_cf_zones)
+compare_zones.perform_compare
 
 ## TODO
 # check if each record in dreamhost exists in CF and if they match
