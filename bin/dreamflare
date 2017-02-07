@@ -34,7 +34,7 @@ puts 'Searching through dreamhost records to ensure they exist and match on clou
 puts '---'
 
 # create the compare class assignments
-compare_zones = CompareZones.new(cloudFlare, matching_dh_zones, matching_cf_zones)
+compare_zones = CompareZones.new(cloud_flare, matching_dh_zones, matching_cf_zones)
 compare_zones.perform_compare
 
 ## TODO

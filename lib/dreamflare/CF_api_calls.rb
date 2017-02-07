@@ -12,7 +12,7 @@ module Dreamflare
             SecureRandom.uuid
         end
 
-        def update_record(name, type, value, priority = nil)
+        def create_record(name, type, value, priority = nil)
             uri = URI('https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records')
             # puts uri
 
