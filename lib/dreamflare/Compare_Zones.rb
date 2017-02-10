@@ -12,92 +12,100 @@ module Dreamflare
             @SlaveDNSRecords = slaveDNSrecords
         end
 
-        def perform_compare()
+        def perform_compare
 
             # loop for each master dns record
             @MasterDNSRecords.each do |dhRecord|
 
                 # find any slave records that match this master record
-                searchResult = @SlaveDNSRecords.select { |x| (x['record'] == dhRecord['record']) && (x['type'] == dhRecord['type']) }
-                resultLength = searchResult.length
+                srOfSlaveMatchingMasterRecord = @SlaveDNSRecords.select { |x| (x['record'] == dhRecord['record']) && (x['type'] == dhRecord['type']) }
+                resultLength = srOfSlaveMatchingMasterRecord.length
 
                 # if we don't find any matches then the record doesn't exist so create it
                 if resultLength == 0
+                    # call create record
+                    create_record(dhRecord)
+                end
 
-                    puts 'record does not exist - creating new record in CloudFlare'
+                if resultLength == 1 # single record only
+                    # check if the values match on the record
+                    if srOfSlaveMatchingMasterRecord[0]['value'] != dhRecord['value']
+                        puts 'single records do not much - update required ' + srOfSlaveMatchingMasterRecord[0]['record']
 
-                    if defined?(dhRecord['priority'])
-                        cloudFlare.create_record(dhRecord['record'], dhRecord['type'], dhRecord['value'], dhRecord['priority'])
                     else
-                        cloudFlare.create_record(dhRecord['record'], dhRecord['type'], dhRecord['value'])
+                        puts 'records match - single value dns record - no action needed: ' + srOfSlaveMatchingMasterRecord[0]['record']
                     end
 
-                    puts 'created: ' + dhRecord['record'] + ' => ' + dhRecord['value']
-
                 end
 
-                if resultLength == 1
-                    # must be a single record
-
-                        # check if the values match on the record
-                        if searchResult[0]['value'] != dhRecord['value']
-                            puts 'single records do not much - update required ' + searchResult[0]['record']
-
-                        else
-                            puts 'records match - single value dns record - no action needed: ' + searchResult[0]['record']
-
-                        end
-
+                if resultLength > 1 # multiple matches - must be an mx or cname record that has multiple values
+                    multiple_record_processor(dhRecord, srOfSlaveMatchingMasterRecord)
                 end
-
-
-                # record must exist
-
-                if resultLength > 1
-                    # found match now what?
-                    # - we will have ot check if the value mathces what we have
-                    # if it doesn't update it
-
-                    # check match multiple records could have been returned for example MX records with multiple values
-
-
-                    # get both records from dreamhost (we reference on the 0 index but this would be the same for n values)
-                    # this is for things like MX records where the record value(dns name) and the type will match
-                    searchDHResults = @MasterDNSRecords.select { |x| (x['record'] == searchResult[0]['record']) && (x['type'] == searchResult[0]['type']) }
-
-                    # for each of the DH records
-                    searchDHResults.each do |dhRecordItem|
-                        foundMatch = false
-
-                        # check if that record exists and its matched in the slave records
-                        searchResult.each do |cfRecordItem|
-                            foundMatch = true if dhRecordItem == cfRecordItem
-                        end
-
-
-                        ## TODO
-                        # Check how many record and and types exists on either side
-                        # if the number doesn't match and is more on the master side go create the record on the slaveDNSrecords
-                        # if the number is more on the slave side than the master find out which one doesn't match and delete it
-                        #
-
-                        # if we can't find a match better create!
-                        if !foundMatch
-                            puts('dual records - GO CREATE RECORD - Multiple records exist')
-                        else
-                            # puts("Multi record: no need to create duplicate record - already matches")
-                            puts 'records match - multi value dns record - no action needed: ' + dhRecord['record']
-                        end
-                    end # end loop for searchDHResults
-
-                end #end if
-
-
-
-
-            end # end loop
-
+            end # end loop for each master record
         end # end perform_compare
+
+        ##############################################
+        ##############################################
+        private
+
+        def multiple_record_processor(masterRecord,srOfSlaveMatchingMasterRecord)
+            # Get all master values of this record
+            srOfAllMasterRecordOfThisGroup = @MasterDNSRecords.select { |x| (x['record'] == masterRecord['record']) && (x['type'] == masterRecord['type']) }
+
+            # for each of the master records
+            srOfAllMasterRecordOfThisGroup.each do |eachMasterRecord|
+                foundMatch = false
+
+                # check that one of the slave records matches the master record
+                srOfSlaveMatchingMasterRecord.each do |cfRecordItem|
+                    foundMatch = true if eachMasterRecord == cfRecordItem
+                end
+
+                # if we can't find a match better create!
+                if !foundMatch
+                    puts('dual records - GO CREATE RECORD - Multiple records exist')
+                    create_record(masterRecord)
+                else
+                    puts 'records match - multi value dns record - no action needed: ' + masterRecord['record']
+                end
+            end # loop for each master record
+
+            # we need to do a clean up and ensure all slave records exist in master
+            multiple_record_update_cleanup(srOfAllMasterRecordOfThisGroup, srOfSlaveMatchingMasterRecord)
+
+        end #end multiple_record_processor
+
+        def multiple_record_update_cleanup(masterRecordArray, slaveRecordArray)
+            slaveRecordArray.each do |slaveRecord| # for each slave record ensure its got a matching master record
+                recordFound = false
+                masterRecordArray.each do |masterRecord|
+                    recordFound = true if masterRecord == slaveRecord
+                end
+                delete_record(slaveRecord) unless recordFound
+            end
+        end # multiple_record_update_cleanup
+
+        # TODO implement delete
+        def delete_record(record)
+            puts "removing old record "
+        end
+
+        # TODO implement update record
+        def update_record(record)
+        end
+
+        def create_record(record)
+            puts 'record does not exist - creating new record in CloudFlare'
+
+            if defined?(record['priority'])
+                cloudFlare.create_record(record['record'], record['type'], record['value'], record['priority'])
+            else
+                cloudFlare.create_record(record['record'], record['type'], record['value'])
+            end
+
+            puts 'created: ' + record['record'] + ' => ' + record['value']
+        end
+
 
 
     end # end class def
