@@ -2,6 +2,7 @@ module Dreamflare
     class CFAPIQuery
         @@APIKey = '' # private variable usied by all instances of the class (hence @@)
         @@APIEmail = ''
+        @CFResponseObject = Hash.new
 
         def initialize(apiKey, apiEmail)
             @@APIKey = apiKey
@@ -53,7 +54,48 @@ module Dreamflare
             make_http_request(zone, command, pageValue = 0)
         end
 
+        def update_record(record)
+            puts 'Update record CF'
+
+            # 1. Lookup record and get ID
+            recordID = get_cf_record_id(record)
+
+            # 2. call the update function
+            make_http_request_update_put(recordID, record)
+
+
+        end
+
+        #####################################################################
+        #####################################################################
         private
+
+        def make_http_request_update_put(dnsrecordID, recordValue)
+
+            #curl -X PUT "https://api.cloudflare.com/client/v4/zones/023e105f4ecef8ad9ca31a8372d0c353/dns_records/372e67954025e0ba6aaa6d586b9e0b59" \
+            # -H "X-Auth-Email: user@example.com" \
+            # -H "X-Auth-Key: c2547eb745079dac9320b638f5e225cf483cc5cfdda41" \
+            # -H "Content-Type: application/json" \
+            # --data '{"type":"A","name":"example.com","content":"127.0.0.1","ttl":120,"proxied":false}'
+
+            uri = URI('https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records/'+dnsrecordID)
+            # puts uri
+
+            https = Net::HTTP.new(uri.host, uri.port)
+            https.use_ssl = true
+
+            req = Net::HTTP::Put.new(uri.path)
+            req['Content-Type'] = 'application/json'
+            req['X-Auth-Key'] = @@APIKey
+            req['X-Auth-Email'] = @@APIEmail
+
+            req.body = recordValue.to_json
+
+            res = https.request(req)
+            responseObject = JSON.parse(res.body)
+
+
+        end
 
         # something to do the query
         # now I need something to do the paging
@@ -100,6 +142,8 @@ module Dreamflare
 
             if cfResults['success'] == true
 
+                store_cf_response(cfResults['result'])
+
                 cfResults['result'].each do |dnsRecord|
                     h = { 'record' => dnsRecord['name'], 'value' => dnsRecord['content'], 'type' => dnsRecord['type'] }
 
@@ -116,8 +160,30 @@ module Dreamflare
             end
 
             matchingCFZones
+        end # end process_response
+
+
+        def store_cf_response(object)
+
+            if(@CFResponseObject != nil)
+                @CFResponseObject = @CFResponseObject+object
+            else
+                @CFResponseObject = object
+            end
+
+        end # add_cf_response
+
+        def get_cf_record_id(record)
+
+            searchResult = @CFResponseObject.select { |x| (x['record'] == record['record']) && (x['type'] == record['type']) && (x['value'] == record['value']) }
+            return searchResult['id']
+
         end
+
     end # end CFAPIQuery class
+
+
+
 
     ##################
     #
