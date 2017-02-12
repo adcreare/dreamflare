@@ -31,11 +31,10 @@ module Dreamflare
                     # check if the values match on the record
                     if srOfSlaveMatchingMasterRecord[0]['value'] != dhRecord['value']
                         puts 'single records do not much - update required ' + srOfSlaveMatchingMasterRecord[0]['record']
-
+                        update_record(dhRecord)
                     else
                         puts 'records match - single value dns record - no action needed: ' + srOfSlaveMatchingMasterRecord[0]['record']
                     end
-
                 end
 
                 if resultLength > 1 # multiple matches - must be an mx or cname record that has multiple values
@@ -91,7 +90,10 @@ module Dreamflare
         end
 
         # TODO implement update record
+        #
         def update_record(record)
+            cloudFlare.update(record)
+
         end
 
         def create_record(record)
@@ -105,9 +107,6 @@ module Dreamflare
 
             puts 'created: ' + record['record'] + ' => ' + record['value']
         end
-
-
-
     end # end class def
 
 
