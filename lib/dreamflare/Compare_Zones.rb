@@ -21,9 +21,17 @@ module Dreamflare
                 srOfSlaveMatchingMasterRecord = @SlaveDNSRecords.select { |x| (x['record'] == dhRecord['record']) && (x['type'] == dhRecord['type']) }
                 resultLength = srOfSlaveMatchingMasterRecord.length
 
+
+
+                # # DEBUG
+                # puts "Debug:"
+                # puts dhRecord
+                # puts "length:"
+                # puts resultLength
+                # puts srOfSlaveMatchingMasterRecord
+
                 # if we don't find any matches then the record doesn't exist so create it
                 if resultLength == 0
-                    # call create record
                     create_record(dhRecord)
                 end
 
@@ -63,6 +71,7 @@ module Dreamflare
                 # if we can't find a match better create!
                 if !foundMatch
                     puts('dual records - GO CREATE RECORD - Multiple records exist')
+                    puts masterRecord
                     create_record(masterRecord)
                 else
                     puts 'records match - multi value dns record - no action needed: ' + masterRecord['record']
@@ -92,17 +101,18 @@ module Dreamflare
         # TODO implement update record
         #
         def update_record(record)
-            cloudFlare.update(record)
-
+            @ClassOfProviderToUpdate.update_record(record)
         end
 
         def create_record(record)
             puts 'record does not exist - creating new record in CloudFlare'
+            puts record
+            exit
 
             if defined?(record['priority'])
-                cloudFlare.create_record(record['record'], record['type'], record['value'], record['priority'])
+                @ClassOfProviderToUpdate.create_record(record['record'], record['type'], record['value'], record['priority'])
             else
-                cloudFlare.create_record(record['record'], record['type'], record['value'])
+                @ClassOfProviderToUpdate.create_record(record['record'], record['type'], record['value'])
             end
 
             puts 'created: ' + record['record'] + ' => ' + record['value']

@@ -90,11 +90,14 @@ module Dreamflare
             req['X-Auth-Key'] = @@APIKey
             req['X-Auth-Email'] = @@APIEmail
 
-            req.body = recordValue.to_json
+
+            req.body = {'name' => recordValue['record'],'type' => recordValue['type'], 'content' => recordValue['value'] }.to_json
 
             res = https.request(req)
             responseObject = JSON.parse(res.body)
 
+            # TODO:
+            # 1. put a message that we are completed with the update but only on success
 
         end
 
@@ -165,7 +168,9 @@ module Dreamflare
             # puts '----'
             # matchingCFZones
             #
+
             return matchingCFZones
+
         end # end process_response
 
 
@@ -181,8 +186,18 @@ module Dreamflare
 
         def get_cf_record_id(record)
 
-            searchResult = @CFResponseObject.select { |x| (x['record'] == record['record']) && (x['type'] == record['type']) && (x['value'] == record['value']) }
-            return searchResult['id']
+            searchResult = @CFResponseObject.select { |x| (x['name'] == record['record']) && (x['type'] == record['type']) }
+
+            puts searchResult[0]["id"]
+            #puts @CFResponseObject
+            #
+
+            if(searchResult.length != 1)
+                throw 'unable to get ID for record to update from cloudflare'
+            end
+
+
+            return searchResult[0]["id"]
 
         end
 
