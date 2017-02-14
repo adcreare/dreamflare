@@ -28,6 +28,8 @@ cloud_flare = CFAPIQuery.new(CFKEY, CFEMAIL)
 puts('--------------Querying CloudFlare API ---------------')
 matching_cf_zones = cloud_flare.query(CFZoneID, 'dns_records')
 
+# cloud_flare.update_record('')
+
 puts '---'
 puts 'Successfully obtained dns records in each system'
 puts 'Searching through dreamhost records to ensure they exist and match on cloudflare'
