@@ -2,7 +2,7 @@ module Dreamflare
     class CFAPIQuery
         @@APIKey = '' # private variable usied by all instances of the class (hence @@)
         @@APIEmail = ''
-        @CFResponseObject = Hash.new
+        @CFResponseObject = {}
 
         def initialize(apiKey, apiEmail)
             @@APIKey = apiKey
@@ -51,11 +51,12 @@ module Dreamflare
         end
 
         def query(zone, command, _params = '')
-            make_http_request(zone, command, pageValue = 0)
+            make_http_request(zone, command)
         end
 
         def update_record(record)
-            puts 'Update record CF'
+            puts 'Update record CF:'
+            puts record
 
             # 1. Lookup record and get ID
             recordID = get_cf_record_id(record)
@@ -78,7 +79,7 @@ module Dreamflare
             # -H "Content-Type: application/json" \
             # --data '{"type":"A","name":"example.com","content":"127.0.0.1","ttl":120,"proxied":false}'
 
-            uri = URI('https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records/'+dnsrecordID)
+            uri = URI('https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records/' + dnsrecordID)
             # puts uri
 
             https = Net::HTTP.new(uri.host, uri.port)
@@ -98,10 +99,10 @@ module Dreamflare
         end
 
         # something to do the query
-        # now I need something to do the paging
-        def make_http_request(zone, command, pageValue = 0)
+        # page starting at 1 because page 1 and no page number == in CloudFlare
+        def make_http_request(zone, command, pageValue = 1)
             page = ''
-            page = '&page=' + String(pageValue) if pageValue > 0
+            page = '&page=' + String(pageValue) if pageValue > 1
 
             uri = URI("https://api.cloudflare.com/client/v4/zones/#{zone}/#{command}#{page}")
             puts 'Calling cloudflare api: ' + String(uri)
@@ -158,8 +159,13 @@ module Dreamflare
                 end
 
             end
-
-            matchingCFZones
+            ## DEBUG
+            # puts '----'
+            # puts matchingCFZones
+            # puts '----'
+            # matchingCFZones
+            #
+            return matchingCFZones
         end # end process_response
 
 
