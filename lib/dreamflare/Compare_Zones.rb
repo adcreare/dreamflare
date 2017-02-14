@@ -21,15 +21,6 @@ module Dreamflare
                 srOfSlaveMatchingMasterRecord = @SlaveDNSRecords.select { |x| (x['record'] == dhRecord['record']) && (x['type'] == dhRecord['type']) }
                 resultLength = srOfSlaveMatchingMasterRecord.length
 
-
-
-                # # DEBUG
-                # puts "Debug:"
-                # puts dhRecord
-                # puts "length:"
-                # puts resultLength
-                # puts srOfSlaveMatchingMasterRecord
-
                 # if we don't find any matches then the record doesn't exist so create it
                 if resultLength == 0
                     create_record(dhRecord)
@@ -54,6 +45,8 @@ module Dreamflare
         ##############################################
         ##############################################
         private
+
+
 
         def multiple_record_processor(masterRecord,srOfSlaveMatchingMasterRecord)
             # Get all master values of this record
@@ -89,21 +82,23 @@ module Dreamflare
                 masterRecordArray.each do |masterRecord|
                     recordFound = true if masterRecord == slaveRecord
                 end
+                # if we didn't find this record in the master set we'd better delete it!
                 delete_record(slaveRecord) unless recordFound
             end
         end # multiple_record_update_cleanup
 
         # TODO implement delete
         def delete_record(record)
-            puts "removing old record "
+            puts "removing old record - in multiple record processing"
+            @ClassOfProviderToUpdate.delete_record(record)
         end
 
-        # TODO implement update record
-        #
+        # Takes a record to update and passes it back to the slave provider class
         def update_record(record)
             @ClassOfProviderToUpdate.update_record(record)
         end
 
+        # Takes a record and will use the slave provider to update it
         def create_record(record)
             puts 'record does not exist - creating new record in CloudFlare'
             puts record
