@@ -67,6 +67,19 @@ module Dreamflare
 
         end
 
+        def delete_record(record)
+            puts 'Processing record to delete:'
+            puts record
+
+            # 1. Lookup record and get ID
+            recordID = get_cf_record_id(record)
+
+            # 2. call the update function
+            make_http_request_delete_record(recordID)
+
+
+        end
+
         #####################################################################
         #####################################################################
         private
@@ -95,6 +108,38 @@ module Dreamflare
 
             res = https.request(req)
             responseObject = JSON.parse(res.body)
+
+            # TODO:
+            # 1. put a message that we are completed with the update but only on success
+
+        end
+
+        def make_http_request_delete_record(dnsrecordID)
+
+
+            # curl -X DELETE "https://api.cloudflare.com/client/v4/zones/023e105f4ecef8ad9ca31a8372d0c353/dns_records/372e67954025e0ba6aaa6d586b9e0b59" \
+            #      -H "X-Auth-Email: user@example.com" \
+            #      -H "X-Auth-Key: c2547eb745079dac9320b638f5e225cf483cc5cfdda41" \
+            #      -H "Content-Type: application/json"
+
+            uri = URI('https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records/' + dnsrecordID)
+            # puts uri
+
+            https = Net::HTTP.new(uri.host, uri.port)
+            https.use_ssl = true
+
+            req = Net::HTTP::Delete.new(uri.path)
+            req['Content-Type'] = 'application/json'
+            req['X-Auth-Key'] = @@APIKey
+            req['X-Auth-Email'] = @@APIEmail
+
+
+            #req.body = {'name' => recordValue['record'],'type' => recordValue['type'], 'content' => recordValue['value'] }.to_json
+
+            res = https.request(req)
+            responseObject = JSON.parse(res.body)
+
+            puts responseObject
 
             # TODO:
             # 1. put a message that we are completed with the update but only on success
@@ -188,12 +233,19 @@ module Dreamflare
 
             searchResult = @CFResponseObject.select { |x| (x['name'] == record['record']) && (x['type'] == record['type']) }
 
-            puts searchResult[0]["id"]
+            puts record
+            puts searchResult
             #puts @CFResponseObject
             #
 
             if(searchResult.length != 1)
-                throw 'unable to get ID for record to update from cloudflare'
+                # run more specific search including values
+                searchResult = @CFResponseObject.select { |x| (x['name'] == record['record']) && (x['type'] == record['type']) && x['content'] == record['value']}
+
+                unless searchResult.length == 1
+                    throw "unable to get single record ID"
+                end
+
             end
 
 
