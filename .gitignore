@@ -1,4 +1,5 @@
 config.rb
 /config/
 /example-outputs/
+/pkg/
 .rubocop.yml
