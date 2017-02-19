@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
     s.executables    = ['dreamflare']
     s.bindir         = 'bin'
     s.add_dependency('json')
-    s.add_dependency('securerandom')
     s.add_development_dependency('aruba')
     s.add_development_dependency('rake')
 end
