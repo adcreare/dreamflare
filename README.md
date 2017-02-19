@@ -1,4 +1,5 @@
 # Dreamflare
+[![Build Status](https://travis-ci.org/adcreare/dreamflare.svg?branch=master)](https://travis-ci.org/adcreare/dreamflare)
 
 A ruby based tool to replicate and keep in sync DNS records from Dreamhost to CloudFlare
 
