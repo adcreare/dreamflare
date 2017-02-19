@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |s|
     s.name           = 'dreamflare'
-    s.version        = '0.0.1'
+    s.version        = '0.1'
     s.platform       = Gem::Platform::RUBY
     s.authors        = ['adcreare']
     s.email          = ['caveman@commscentral.net']
