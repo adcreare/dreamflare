@@ -3,6 +3,12 @@
 
 A ruby based tool to replicate and keep in sync DNS records from Dreamhost to CloudFlare
 
+## Table of Contents
+
+* [Why do I need this?](#why-do-i-need-this?)
+* [Installation and Usage instructions](#installation-and-usage-instructions)
+* [Development](#development)
+
 ## Why do I need this?
 Dreamhost supports a native integration with CloudFlare for a very cost effective price. However this service has one major notable issue:
 
@@ -35,7 +41,7 @@ In addition it will allow any single A or CNAME records created manually in Clou
 
 Dreamflare requires the ruby runtime, however it is very flexible to which ruby runtime. It was developed on ruby > 2.0 however it should work in older versions.
 
-1. Download the gem file
+1. Download the gem file - Latest release https://github.com/adcreare/dreamflare/releases/latest
 
 2. Install the gem with ```gem install dreamflare-*.gem```
 
