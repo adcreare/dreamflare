@@ -2,7 +2,7 @@
 
 A ruby based tool to replicate and keep in sync DNS records from Dreamhost to CloudFlare
 
-### Why do I need this?
+## Why do I need this?
 Dreamhost supports a native integration with CloudFlare for a very cost effective price. However this service has one major notable issue:
 
 **It does not protect your zone apex record of your site  (mysite.com for example). It will only protect a CNAME of your site such as www.mysite.com**
@@ -28,9 +28,9 @@ For records that have multiple values (like MX records) it will ensure all the r
 
 In addition it will allow any single A or CNAME records created manually in CloudFlare to remain as long as they do not conflict with a record in DreamHost. Thereby allowing additional records to be created in CloudFlare for other purposes.
 
+---
 
-
-### Installation and Usage instructions
+## Installation and Usage instructions
 
 Dreamflare requires the ruby runtime, however it is very flexible to which ruby runtime. It was developed on ruby > 2.0 however it should work in older versions.
 
@@ -50,11 +50,12 @@ CFZoneID = 'afxxxxxxxxxxxxxxxxx' # The unique ID that CloudFlare gives your zone
 4. Replicate and sync by running the command ```dreamflare```
 
 5. Schedule as a cron job or similar
+---
 
-### Development
+## Development
 
 DreamFlare is currently still under development.
 
 I've designed the tool to be somewhat portable for other hosting providers, however at this time DreamHost -> CloudFlare is the only working operation.
 
- I won't be writing support personally for other providers but I do intend to document exactly what data objects the Compare_Zones.rb class expects to be able to perform the comparison. 
+ I won't be writing support personally for other providers but I do intend to document exactly what data objects the Compare_Zones.rb class expects to be able to perform the comparison.
