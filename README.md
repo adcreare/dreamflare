@@ -50,6 +50,7 @@ CFZoneID = 'afxxxxxxxxxxxxxxxxx' # The unique ID that CloudFlare gives your zone
 4. Replicate and sync by running the command ```dreamflare```
 
 5. Schedule as a cron job or similar
+
 ---
 
 ## Development
