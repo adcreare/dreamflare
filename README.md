@@ -39,13 +39,13 @@ Dreamflare requires the ruby runtime, however it is very flexible to which ruby 
 2. Install the gem with ```gem install dreamflare-*.gem```
 
 3. Create configuration in ~/.dreamflare/config.rb
-```ruby
-SearchZone = 'mysite.com' # the DNS zone name. This needs to be the apex record. no www.mysite.com etc
-DHKEY  = "xxxxxxxx" # dreamhost API key
-CFKEY = 'xxxxxxxxx' # CloudFlare API key
-CFEMAIL = 'xxxxx@xxxxx.com' # CloudFlare account Email (required for API access)
-CFZoneID = 'afxxxxxxxxxxxxxxxxx' # The unique ID that CloudFlare gives your zone
-```
+    ```ruby
+    SearchZone = 'mysite.com' # the DNS zone name. This needs to be the apex record. no www.mysite.com etc
+    DHKEY  = "xxxxxxxx" # dreamhost API key
+    CFKEY = 'xxxxxxxxx' # CloudFlare API key
+    CFEMAIL = 'xxxxx@xxxxx.com' # CloudFlare account Email (required for API access)
+    CFZoneID = 'afxxxxxxxxxxxxxxxxx' # The unique ID that CloudFlare gives your zone
+    ```
 
 4. Replicate and sync by running the command ```dreamflare```
 
