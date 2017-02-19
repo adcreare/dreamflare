@@ -9,7 +9,7 @@
 ###############################################################################
 
 # Load configuration (use relative to prevent loading in other places)
-require_relative '../config.rb'
+# require_relative '../config.rb'
 
 # set default path and
 $LOAD_PATH << File.expand_path(File.dirname(__FILE__) + '/../lib')
@@ -17,6 +17,9 @@ require 'dreamflare.rb'
 
 # setup our namespace
 include Dreamflare
+
+# call load config
+load_config
 
 # query dreamhost
 dream_host = DHAPIQuery.new(DHKEY)
