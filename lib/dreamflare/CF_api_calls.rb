@@ -43,9 +43,9 @@ module Dreamflare
                 #  puts("------------------------")
             end
 
-            # curl -X POST "https://api.cloudflare.com/client/v4/zones/af53c6784ad906452f9b8ed589fd805b/dns_records" \
-            #      -H "X-Auth-Email: david@commscentral.net" \
-            #      -H "X-Auth-Key: ab6b55cbc084891a75f90d8f1a6a2afa04a3b" \
+            # curl -X POST "https://api.cloudflare.com/client/v4/$zonenamehere/dns_records" \
+            #      -H "X-Auth-Email: authuser@domain.com" \
+            #      -H "X-Auth-Key: api key here" \
             #      -H "Content-Type: application/json" \
             #      --data '{"type":"A","name":"example.com","content":"127.0.0.1","ttl":120,"proxied":false}'
         end
